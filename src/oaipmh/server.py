@@ -32,13 +32,13 @@ class XMLTreeServer(object):
         self._server = server
         self._metadata_registry = (
             metadata_registry or metadata.global_metadata_registry)
-        
+
     def getRecord(self, **kw):
         envelope, e_getRecord = self._outputEnvelope(
             verb='GetRecord', **kw)
         header, metadata, about = self._server.getRecord(**kw)
         e_record = SubElement(e_getRecord, nsoai('record'))
-        self._outputHeader(e_record, header)   
+        self._outputHeader(e_record, header)
         if not header.isDeleted():
             self._outputMetadata(e_record, kw['metadataPrefix'], metadata)
         return envelope
@@ -192,7 +192,7 @@ class XMLTreeServer(object):
             e_error.set('code', error_code)
             e_error.text = error_msg
         return e_tree
-    
+
     def _outputResuming(self, element, input_func, output_func, kw):
         if 'resumptionToken' in kw:
             resumptionToken = kw['resumptionToken']
@@ -207,15 +207,15 @@ class XMLTreeServer(object):
             # but input_func (listSets) should have already raised
             # NoSetHierarchyError in that case
             if not result:
-                raise error.NoRecordsMatchError,\
-                      "No records match for request."
+                raise error.NoRecordsMatchError(
+                      "No records match for request.")
             # without resumption token keys are fine
             token_kw = kw
         output_func(element, result, token_kw)
         if token is not None:
             e_resumptionToken = SubElement(element, nsoai('resumptionToken'))
             e_resumptionToken.text = token
-            
+
     def _outputHeader(self, element, header):
         e_header = SubElement(element, nsoai('header'))
         if header.isDeleted():
@@ -227,12 +227,12 @@ class XMLTreeServer(object):
         for set in header.setSpec():
             e = SubElement(e_header, nsoai('setSpec'))
             e.text = set
-    
+
     def _outputMetadata(self, element, metadata_prefix, metadata):
         e_metadata = SubElement(element, nsoai('metadata'))
         if not self._metadata_registry.hasWriter(metadata_prefix):
-            raise error.CannotDisseminateFormatError,\
-                  "Unknown metadata format: %s" % metadata_prefix
+            raise error.CannotDisseminateFormatError(
+                  "Unknown metadata format: %s" % metadata_prefix)
         self._metadata_registry.writeMetadata(
             metadata_prefix, e_metadata, metadata)
 
@@ -257,36 +257,35 @@ class ServerBase(common.ResumptionOAIPMH):
                 for key, value in request_kw.items():
                     new_kw[str(key)] = value
             except UnicodeError:
-                raise error.BadVerbError,\
-                      "Non-ascii keys in request."
+                raise error.BadVerbError(
+                      "Non-ascii keys in request.")
             request_kw = new_kw
             try:
                 verb = request_kw.pop('verb')
             except KeyError:
                 verb = 'unknown'
-                raise error.BadVerbError,\
-                      "Required verb argument not found."
+                raise error.BadVerbError(
+                      "Required verb argument not found.")
             if verb not in ['GetRecord', 'Identify', 'ListIdentifiers',
                             'GetMetadata', 'ListMetadataFormats',
                             'ListRecords', 'ListSets']:
-                raise error.BadVerbError, "Illegal verb: %s" % verb
+                raise error.BadVerbError("Illegal verb: %s" % verb)
             # replace from and until arguments if necessary
             from_ = request_kw.get('from')
             if from_ is not None:
                 # rename to from_ for internal use
                 try:
                     request_kw['from_'] = datestamp_to_datetime(from_)
-                except DatestampError, err:
+                except DatestampError:
                     raise error.BadArgumentError(
-                        "The value '%s' of the argument "
-                        "'%s' is not valid." %(from_, 'from'))
+                        "The value '%s' of the argument '%s' is not valid." %(from_, 'from'))
                 del request_kw['from']
             until = request_kw.get('until')
             if until is not None:
                 try:
                     request_kw['until'] = datestamp_to_datetime(until,
                                                                 inclusive=True)
-                except DatestampError, err:
+                except DatestampError:
                     raise error.BadArgumentError(
                         "The value '%s' of the argument "
                         "'%s' is not valid." %(until, 'until'))
@@ -297,15 +296,15 @@ class ServerBase(common.ResumptionOAIPMH):
                     raise error.BadArgumentError(
                         "The request has different granularities for"
                         " the from and until parameters")
-                
+
             # now validate parameters
             try:
                 validation.validateResumptionArguments(verb, request_kw)
-            except validation.BadArgumentError, e:
+            except validation.BadArgumentError as e:
                 # have to raise this as a error.BadArgumentError
-                raise error.BadArgumentError, str(e)
+                raise error.BadArgumentError(str(e))
             # now handle verb
-            return self.handleVerb(verb, request_kw)            
+            return self.handleVerb(verb, request_kw)
         except:
             # in case of exception, call exception handler
             return self.handleException(request_kw, sys.exc_info())
@@ -453,8 +452,8 @@ def decodeResumptionToken(token):
     try:
         kw = cgi.parse_qs(token, True, True)
     except ValueError:
-        raise error.BadResumptionTokenError,\
-              "Unable to decode resumption token: %s" % token
+        raise error.BadResumptionTokenError(
+              "Unable to decode resumption token: %s" % token)
     result = {}
     for key, value in kw.items():
         value = value[0]
@@ -464,8 +463,8 @@ def decodeResumptionToken(token):
     try:
         cursor = int(result.pop('cursor'))
     except (KeyError, ValueError):
-        raise error.BadResumptionTokenError,\
-              "Unable to decode resumption token (bad cursor): %s" % token
+        raise error.BadResumptionTokenError(
+              "Unable to decode resumption token (bad cursor): %s" % token)
     # XXX should also validate result contents. Need verb information
     # for this, and somewhat more flexible verb validation support
     return result, cursor

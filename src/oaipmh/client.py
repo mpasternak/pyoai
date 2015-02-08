@@ -37,7 +37,7 @@ class BaseClient(common.OAIPMH):
         elif granularity == 'YYYY-MM-DDThh:mm:ssZ':
             self._day_granularity= False
         else:
-            raise Error, "Non-standard granularity on server: %s" % granularity
+            raise Error("Non-standard granularity on server: %s" % granularity)
             
     def handleVerb(self, verb, kw):
         # validate kw first
@@ -288,15 +288,15 @@ class BaseClient(common.OAIPMH):
                                 'badVerb', 'cannotDisseminateFormat',
                                 'idDoesNotExist', 'noRecordsMatch',
                                 'noMetadataFormats', 'noSetHierarchy']:
-                    raise error.UnknownError,\
+                    raise error.UnknownError(
                           "Unknown error code from server: %s, message: %s" % (
-                        code, msg)
+                        code, msg))
                 # find exception in error module and raise with msg
-                raise getattr(error, code[0].upper() + code[1:] + 'Error'), msg
+                raise getattr(error, code[0].upper() + code[1:] + 'Error')(msg)
         return tree
     
     def makeRequest(self, **kw):
-        raise NotImplementedError
+        raise NotImplementedError()
     
 class Client(BaseClient):
     def __init__(
@@ -308,7 +308,7 @@ class Client(BaseClient):
             self._credentials = base64.encodestring('%s:%s' % credentials)
         else:
             self._credentials = None
-            
+
     def makeRequest(self, **kw):
         """Either load a local XML file or actually retrieve XML from a server.
         """
@@ -326,13 +326,13 @@ class Client(BaseClient):
             return retrieveFromUrlWaiting(request)
 
 def buildHeader(header_node, namespaces):
-    e = etree.XPathEvaluator(header_node, 
+    e = etree.XPathEvaluator(header_node,
                             namespaces=namespaces).evaluate
     identifier = e('string(oai:identifier/text())')
     datestamp = datestamp_to_datetime(
         str(e('string(oai:datestamp/text())')))
     setspec = [str(s) for s in e('oai:setSpec/text()')]
-    deleted = e("@status = 'deleted'") 
+    deleted = e("@status = 'deleted'")
     return common.Header(header_node, identifier, datestamp, setspec, deleted)
 
 def ResumptionListGenerator(firstBatch, nextBatch):
@@ -355,7 +355,7 @@ def retrieveFromUrlWaiting(request,
             f.close()
             # we successfully opened without having to wait
             break
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if e.code == 503:
                 try:
                     retryAfter = int(e.hdrs.get('Retry-After'))
@@ -369,13 +369,13 @@ def retrieveFromUrlWaiting(request,
                 # reraise any other HTTP error
                 raise
     else:
-        raise Error, "Waited too often (more than %s times)" % wait_max
+        raise Error("Waited too often (more than %s times)" % wait_max)
     return text
 
 class ServerClient(BaseClient):
     def __init__(self, server, metadata_registry=None):
         BaseClient.__init__(self, metadata_registry)
         self._server = server
-        
+
     def makeRequest(self, **kw):
         return self._server.handleRequest(kw)

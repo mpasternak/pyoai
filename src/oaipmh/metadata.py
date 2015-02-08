@@ -59,9 +59,8 @@ class MetadataReader(object):
     def __call__(self, element):
         map = {}
         # create XPathEvaluator for this element
-        xpath_evaluator = etree.XPathEvaluator(element, 
+        xpath_evaluator = etree.XPathEvaluator(element,
                                                namespaces=self._namespaces)
-        
         e = xpath_evaluator.evaluate
         # now extra field info according to xpath expr
         for field_name, (field_type, expr) in self._fields.items():
@@ -78,7 +77,7 @@ class MetadataReader(object):
                 # of lxml.etree._ElementUnicodeResult objects.
                 value = [unicode(v) for v in e(expr)]
             else:
-                raise Error, "Unknown field type: %s" % field_type
+                raise Error("Unknown field type: %s" % field_type)
             map[field_name] = value
         return common.Metadata(element, map)
 

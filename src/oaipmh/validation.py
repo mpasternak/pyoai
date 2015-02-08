@@ -12,20 +12,20 @@ def validate(argspec, dict):
     for key, value in dict.items():
         if not argspec.has_key(key):
             msg = "Unknown argument: %s" % key
-            raise BadArgumentError, msg
+            raise BadArgumentError(msg)
     # first investigate if we have exclusive argument
     if dict.has_key(exclusive):
         if len(dict) > 1:
             msg = ("Exclusive argument %s is used but other "
                    "arguments found." % exclusive)
-            raise BadArgumentError, msg
+            raise BadArgumentError(msg)
         return
     # if not exclusive, check for required
     for arg_name, arg_type in argspec.items(): 
         if arg_type == 'required':
             msg = "Argument required but not found: %s" % arg_name
             if not dict.has_key(arg_name):
-                raise BadArgumentError, msg 
+                raise BadArgumentError(msg)
     return
         
 class ValidationSpec(object):
