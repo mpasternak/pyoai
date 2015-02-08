@@ -1,11 +1,23 @@
 # Copyright 2003, 2004, 2005 Infrae
 # Released under the BSD license (see LICENSE.txt)
 from __future__ import nested_scopes
-import urllib2
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 import base64
-from urllib import urlencode
-from StringIO import StringIO
-from types import SliceType
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+try:
+    from types import SliceType
+except ImportError:
+    SliceType = slice
 from lxml import etree
 import time
 import codecs
