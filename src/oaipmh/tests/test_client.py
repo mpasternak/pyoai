@@ -1,5 +1,5 @@
 from unittest import TestCase, TestSuite, main, makeSuite
-from fakeclient import FakeClient, GranularityFakeClient, TestError
+from .fakeclient import FakeClient, GranularityFakeClient, TestError
 import os
 from datetime import datetime
 from oaipmh import common, metadata, validation

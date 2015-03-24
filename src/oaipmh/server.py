@@ -1,7 +1,7 @@
 from lxml.etree import ElementTree, Element, SubElement
 from lxml import etree
 from datetime import datetime
-from urllib import quote, unquote, urlencode
+from urllib.parse import quote, unquote, urlencode
 import sys, cgi
 
 from oaipmh import common, metadata, validation, error
@@ -169,7 +169,7 @@ class XMLTreeServer(object):
         e_responseDate.text = datetime_to_datestamp(
             datetime.utcnow().replace(microsecond=0))
         e_request = SubElement(e_oaipmh, nsoai('request'))
-        for key, value in kw.items():
+        for key, value in list(kw.items()):
             if key == 'from_':
                 key = 'from'
             if key == 'from' or key == 'until':
@@ -254,7 +254,7 @@ class ServerBase(common.ResumptionOAIPMH):
         try:
             new_kw = {}
             try:
-                for key, value in request_kw.items():
+                for key, value in list(request_kw.items()):
                     new_kw[str(key)] = value
             except UnicodeError:
                 raise error.BadVerbError(
@@ -455,7 +455,7 @@ def decodeResumptionToken(token):
         raise error.BadResumptionTokenError(
               "Unable to decode resumption token: %s" % token)
     result = {}
-    for key, value in kw.items():
+    for key, value in list(kw.items()):
         value = value[0]
         if key == 'from_' or key == 'until':
             value = datestamp_to_datetime(value)
