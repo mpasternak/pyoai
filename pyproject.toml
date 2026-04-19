@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyoai"
-version = "2.5.2pre"
+version = "2.5.2"
 description = "The oaipmh module is a Python implementation of an \"Open Archives Initiative Protocol for Metadata Harvesting\" (version 2) client and server."
 readme = "README.rst"
 requires-python = ">=3.10"
@@ -46,3 +46,17 @@ where = ["src"]
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[tool.bumpver]
+current_version = "2.5.2"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "Bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+    'version = "{version}"',
+]
