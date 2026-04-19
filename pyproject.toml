@@ -53,6 +53,10 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "W"]
 
+[tool.pytest.ini_options]
+testpaths = ["src/oaipmh/tests"]
+python_classes = ["*TestCase"]
+
 [tool.bumpver]
 current_version = "2.5.2"
 version_pattern = "MAJOR.MINOR.PATCH"
